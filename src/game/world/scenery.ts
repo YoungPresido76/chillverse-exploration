@@ -218,9 +218,10 @@ function addVegetation(group: THREE.Group, layout: WorldLayout, kit: Kit, extras
 function addBoundaries(group: THREE.Group, layout: WorldLayout, kit: Kit) {
   const style = layout.map.style;
   const step = 1.55;
+  const extent = layout.map.style === "space" ? 25 : 26;
   const pts: Array<[number, number, number, number]> = [];
-  for (let x = -20; x <= 20; x += step) {
-    for (let z = -20; z <= 20; z += step) {
+  for (let x = -extent; x <= extent; x += step) {
+    for (let z = -extent; z <= extent; z += step) {
       if (layout.walkable(x, z)) continue;
       const neighbor =
         layout.walkable(x + step, z) ||
@@ -273,6 +274,53 @@ function addBoundaries(group: THREE.Group, layout: WorldLayout, kit: Kit) {
       setInstance(mesh, i, x, y + 1.7 * s, z, s * 1.15, s * 1.15, s * 1.15, 0, i * 0.3, 0);
     }
   });
+}
+
+function addBoundaryLandforms(group: THREE.Group, layout: WorldLayout, kit: Kit, bag: ResourceBag) {
+  const batch = new MeshBatcher();
+  const style = layout.map.style;
+  for (const boundary of layout.boundaries) {
+    for (let i = -4; i <= 4; i++) {
+      const tangentX = Math.cos(boundary.angle) * i * 1.2;
+      const tangentZ = Math.sin(boundary.angle) * i * 1.2;
+      const x = boundary.x + tangentX;
+      const z = boundary.z + tangentZ;
+      const y = layout.height(x, z);
+      if (style === "space") {
+        batch.add(kit.icoGeo, kit.voidMat, x, y + 0.5 + (i & 1) * 0.18, z, 0.9, 0.65, 0.9, 0.1, i, 0);
+      } else if (style === "cavern" || style === "lakeside") {
+        batch.add(kit.rockGeo, style === "lakeside" ? kit.ashRock : kit.darkRock, x, y + 0.45, z, 1.15, 1.45, 1.15, 0.1, i, 0.08);
+      } else {
+        batch.add(kit.trunkGeo, kit.trunkMat, x, y + 0.75, z, 0.8, 1.4, 0.8, 0, i, 0);
+        batch.add(kit.foliageGeo, kit.darkFoliage, x, y + 1.9, z, 1.05, 1.2, 1.05, 0, i * 0.4, 0);
+      }
+    }
+  }
+  batch.flush(group, bag);
+}
+
+function addLandmarkPocketProps(group: THREE.Group, layout: WorldLayout, kit: Kit, bag: ResourceBag) {
+  const batch = new MeshBatcher();
+  for (const lm of layout.landmarks) {
+    const count = lm.index === layout.landmarks.length - 1 ? 10 : 7;
+    for (let i = 0; i < count; i++) {
+      const angle = (i / count) * Math.PI * 2 + lm.index * 0.63;
+      const radius = lm.pocketRadius * (0.62 + (i % 3) * 0.055);
+      const x = lm.x + Math.cos(angle) * radius;
+      const z = lm.z + Math.sin(angle) * radius;
+      const y = layout.height(x, z);
+      if (layout.map.style === "meadow") {
+        batch.add(kit.grassGeo, i % 2 ? kit.grassMat : kit.thornFoliage, x, y, z, 1.2, 1.2 + (i % 3) * 0.2, 1.2, 0, angle, 0);
+      } else if (layout.map.style === "lakeside") {
+        batch.add(kit.rockGeo, i % 2 ? kit.ashRock : kit.darkRock, x, y + 0.22, z, 0.55, 0.4, 0.55, 0.1, angle, 0);
+      } else if (layout.map.style === "cavern") {
+        batch.add(kit.crystalGeo, kit.saltMat, x, y + 0.5, z, 0.45, 0.7, 0.45, 0, angle, 0);
+      } else {
+        batch.add(kit.icoGeo, kit.voidMat, x, y + 0.18, z, 0.35, 0.2, 0.35, 0, angle, 0);
+      }
+    }
+  }
+  batch.flush(group, bag);
 }
 
 function addLandmarks(group: THREE.Group, layout: WorldLayout, kit: Kit, bag: ResourceBag) {
@@ -601,7 +649,9 @@ export function addScenery(
   addWater(group, layout, kit, extras, bag);
   addVegetation(group, layout, kit, extras);
   addBoundaries(group, layout, kit);
+  addBoundaryLandforms(group, layout, kit, bag);
   addLandmarks(group, layout, kit, bag);
+  addLandmarkPocketProps(group, layout, kit, bag);
   addHero(group, layout, kit, extras, bag);
   addFinds(group, layout, kit, extras, bag);
   addLife(group, layout, extras, bag);

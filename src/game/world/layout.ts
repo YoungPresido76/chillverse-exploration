@@ -33,6 +33,22 @@ export type LandmarkSpec = {
   radius: number;
   t: number;
   index: number;
+  approachRadius: number;
+  pocketRadius: number;
+  boundaryRadius: number;
+  sideTrailAngle: number;
+  sideTrailLength: number;
+};
+
+export type BoundaryKind = "forest" | "cliff" | "deep-water" | "rock-wall" | "void-edge";
+
+export type BoundarySpec = {
+  kind: BoundaryKind;
+  x: number;
+  z: number;
+  radius: number;
+  width: number;
+  angle: number;
 };
 
 export type SubZone = {
@@ -67,6 +83,7 @@ export type WorldLayout = {
   seed: number;
   samples: PathSample[];
   landmarks: LandmarkSpec[];
+  boundaries: BoundarySpec[];
   zones: SubZone[];
   finds: WorldFindSpec[];
   hero: HeroSpec;
@@ -82,7 +99,7 @@ export type WorldLayout = {
   zoneAt: (x: number, z: number) => SubZone;
 };
 
-const SAMPLE_COUNT = 96;
+const SAMPLE_COUNT = 128;
 
 const ZONES: Record<number, SubZone[]> = {
   1: [
@@ -158,6 +175,24 @@ function pathKind(style: RegionStyle, t: number, wet: boolean): PathKind {
   return "dirt";
 }
 
+function boundaryKind(style: RegionStyle): BoundaryKind {
+  if (style === "space") return "void-edge";
+  if (style === "cavern") return "rock-wall";
+  if (style === "lakeside") return "cliff";
+  return "forest";
+}
+
+function buildBoundarySpecs(style: RegionStyle): BoundarySpec[] {
+  const kind = boundaryKind(style);
+  const reach = REGION_HALF - 1.4;
+  return [
+    { kind, x: 0, z: -reach, radius: 8, width: 3.8, angle: 0 },
+    { kind, x: reach, z: 0, radius: 8, width: 3.8, angle: Math.PI / 2 },
+    { kind, x: 0, z: reach, radius: 8, width: 3.8, angle: Math.PI },
+    { kind, x: -reach, z: 0, radius: 8, width: 3.8, angle: -Math.PI / 2 },
+  ];
+}
+
 function rawHeight(x: number, z: number, style: RegionStyle, zone: SubZone, water: WaterBody[]) {
   if (style === "space") return 0;
   let h = getTerrainHeight(x, z) + zone.heightBias + detailNoise(x, z) * zone.roughness;
@@ -182,6 +217,7 @@ export function buildWorldLayout(map: MapDef): WorldLayout {
   const random = createSeededRandom(seed);
   const zones = ZONES[map.id] ?? ZONES[1]!;
   const water = waterFor(map);
+  const boundaries = buildBoundarySpecs(map.style);
   const pathWidth = map.style === "space" ? 1.95 : 1.32;
   const wilderness = map.style === "space" ? 2.2 : map.style === "cavern" ? 5.5 : map.style === "lakeside" ? 6.3 : 7.3;
 
@@ -271,6 +307,11 @@ export function buildWorldLayout(map: MapDef): WorldLayout {
       radius: last ? 6.1 : 4.55,
       t: near.sample.t,
       index,
+      approachRadius: last ? 8.2 : 6.4,
+      pocketRadius: last ? 7.1 : 5.5,
+      boundaryRadius: last ? 8.6 : 6.8,
+      sideTrailAngle: (index % 2 === 0 ? 1 : -1) * (0.45 + random() * 0.55),
+      sideTrailLength: 3.1 + random() * 1.7,
     };
   });
 
@@ -296,7 +337,13 @@ export function buildWorldLayout(map: MapDef): WorldLayout {
     const bound = REGION_HALF - 0.85;
     if (Math.abs(x) > bound || Math.abs(z) > bound) return false;
     const np = nearestPath(x, z);
-    const inLm = landmarks.some((lm) => Math.hypot(x - lm.x, z - lm.z) < lm.radius + 0.7);
+    const inLm = landmarks.some((lm) => {
+      const d = Math.hypot(x - lm.x, z - lm.z);
+      if (d < lm.pocketRadius) return true;
+      const sx = lm.x + Math.cos(lm.sideTrailAngle) * lm.sideTrailLength;
+      const sz = lm.z + Math.sin(lm.sideTrailAngle) * lm.sideTrailLength;
+      return Math.hypot(x - sx, z - sz) < 1.45;
+    });
     if (map.style === "space") return np.dist < pathWidth * 0.92 || inLm;
     const body = inWater(x, z, water);
     if (body) {
@@ -321,7 +368,7 @@ export function buildWorldLayout(map: MapDef): WorldLayout {
   const finds: WorldFindSpec[] = [];
   const catalog = FIND_CATALOG[map.id] ?? [];
   catalog.forEach((def, i) => {
-    const t = 0.12 + i * 0.16;
+    const t = 0.1 + (i / Math.max(1, catalog.length - 1)) * 0.8;
     const near = nearestPath(
       curve.getPointAt(THREE.MathUtils.clamp(t, 0, 1)).x,
       curve.getPointAt(THREE.MathUtils.clamp(t, 0, 1)).z,
@@ -371,6 +418,7 @@ export function buildWorldLayout(map: MapDef): WorldLayout {
     height,
     walkable,
     surface,
+    boundaries,
     nearestPath,
     zoneAtT: (t) => zoneAtT(zones, t),
     zoneAt: (x, z) => zoneAtT(zones, nearestPath(x, z).sample.t),

@@ -39,6 +39,18 @@ export const FIND_CATALOG: Record<number, FindDef[]> = {
       lore: "A figure grown from living wood, facing the deep hollow as if it remembers a name.",
       kind: "statue",
     },
+    {
+      id: "gf-ringstone",
+      name: "Ringstone",
+      lore: "A circle of low stones sits just beyond the trail. The center is warm despite the shade.",
+      kind: "carving",
+    },
+    {
+      id: "gf-feather",
+      name: "Green Feather",
+      lore: "A feather too large for any meadow bird, pinned beneath a fern by a thorn.",
+      kind: "object",
+    },
   ],
   2: [
     {
@@ -70,6 +82,18 @@ export const FIND_CATALOG: Record<number, FindDef[]> = {
       name: "Obsidian Tear",
       lore: "A shard that holds a second sky. Look too long and the real one feels thinner.",
       kind: "crystal",
+    },
+    {
+      id: "cl-steps",
+      name: "Half-Drowned Steps",
+      lore: "Stone steps descend into the lake and stop one step short of the waterline.",
+      kind: "carving",
+    },
+    {
+      id: "cl-spark",
+      name: "Banked Spark",
+      lore: "A coal tucked under black sand flares once when you turn toward the keep.",
+      kind: "phenomenon",
     },
   ],
   3: [
@@ -103,6 +127,18 @@ export const FIND_CATALOG: Record<number, FindDef[]> = {
       lore: "A fossil fish laid before an empty chair. The cavern listens.",
       kind: "fossil",
     },
+    {
+      id: "uw-dripstone",
+      name: "Listening Stone",
+      lore: "A stalagmite shaped like an ear. Water taps out a rhythm from somewhere below.",
+      kind: "phenomenon",
+    },
+    {
+      id: "uw-rope",
+      name: "Old Descent Rope",
+      lore: "The rope disappears into a flooded shaft, its knots still dry to the touch.",
+      kind: "object",
+    },
   ],
   4: [
     {
@@ -134,6 +170,18 @@ export const FIND_CATALOG: Record<number, FindDef[]> = {
       name: "Apex Spark",
       lore: "A fragment of the last map. It is warm, like a story you already walked.",
       kind: "crystal",
+    },
+    {
+      id: "vd-shadow",
+      name: "Second Shadow",
+      lore: "A shadow falls across the platform with no object to cast it. It points toward the apex.",
+      kind: "phenomenon",
+    },
+    {
+      id: "vd-thread",
+      name: "Loose Horizon",
+      lore: "A bright thread hangs in the dark. Pulling it makes the distant structure tilt.",
+      kind: "object",
     },
   ],
 };

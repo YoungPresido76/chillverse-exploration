@@ -167,16 +167,78 @@ function pathMaterial(kind: PathKind, bag: ResourceBag, tint: string) {
   );
 }
 
+function shoulderMaterial(kind: PathKind, bag: ResourceBag, tint: string) {
+  const color =
+    kind === "void" ? "#120f1a" : kind === "crystal" ? "#5b7190" : kind === "cavern" ? "#241c30" : "#3d2c20";
+  return bag.mat(
+    new THREE.MeshStandardMaterial({
+      color,
+      emissive: kind === "void" ? tint : "#000000",
+      emissiveIntensity: kind === "void" ? 0.16 : 0,
+      roughness: 1,
+      transparent: true,
+      opacity: 0.6,
+      flatShading: true,
+    }),
+  );
+}
+
+function spurSamples(layout: WorldLayout, lm: WorldLayout["landmarks"][number]): PathSample[] {
+  const near = layout.nearestPath(lm.x, lm.z).sample;
+  const ex = lm.x + Math.cos(lm.sideTrailAngle) * lm.sideTrailLength;
+  const ez = lm.z + Math.sin(lm.sideTrailAngle) * lm.sideTrailLength;
+  const dx = ex - near.x;
+  const dz = ez - near.z;
+  const len = Math.hypot(dx, dz) || 1;
+  const tx = dx / len;
+  const tz = dz / len;
+  return [
+    { ...near, t: 0, kind: near.kind },
+    {
+      x: ex,
+      y: layout.height(ex, ez),
+      z: ez,
+      tx,
+      tz,
+      rx: -tz,
+      rz: tx,
+      t: 1,
+      kind: near.kind,
+    },
+  ];
+}
+
 export function addPhysicalPath(group: THREE.Group, layout: WorldLayout, bag: ResourceBag, _extras: AnimatedExtra[]) {
   const tint = layout.map.color;
   const runs = splitByKind(layout.samples);
   for (const run of runs) {
     const width = run.kind === "wood" ? layout.pathWidth * 1.12 : layout.pathWidth;
     const lift = run.kind === "wood" ? 0.12 : 0.045;
+    const shoulder = new THREE.Mesh(
+      bag.geo(ribbonGeometry(run.samples, width + 0.72, lift - 0.015)),
+      shoulderMaterial(run.kind, bag, tint),
+    );
+    shoulder.receiveShadow = true;
+    group.add(shoulder);
     const geo = bag.geo(ribbonGeometry(run.samples, width, lift));
     const mesh = new THREE.Mesh(geo, pathMaterial(run.kind, bag, tint));
     mesh.receiveShadow = true;
     group.add(mesh);
+  }
+
+  for (const lm of layout.landmarks) {
+    const samples = spurSamples(layout, lm);
+    const shoulder = new THREE.Mesh(
+      bag.geo(ribbonGeometry(samples, layout.pathWidth * 0.9, 0.035)),
+      shoulderMaterial(samples[0]!.kind, bag, tint),
+    );
+    const trail = new THREE.Mesh(
+      bag.geo(ribbonGeometry(samples, layout.pathWidth * 0.62, 0.055)),
+      pathMaterial(samples[0]!.kind, bag, tint),
+    );
+    shoulder.receiveShadow = true;
+    trail.receiveShadow = true;
+    group.add(shoulder, trail);
   }
 
   const pebbleGeo = bag.geo(new THREE.DodecahedronGeometry(0.12, 0));

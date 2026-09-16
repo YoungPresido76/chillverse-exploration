@@ -1,6 +1,8 @@
-export const REGION_SIZE = 44;
+// A larger footprint gives the existing route and landmark systems room to breathe
+// without turning the game into an open world. All placement remains deterministic.
+export const REGION_SIZE = 56;
 export const REGION_HALF = REGION_SIZE / 2;
-export const TERRAIN_SEGMENTS = 56;
+export const TERRAIN_SEGMENTS = 72;
 
 export function createSeededRandom(seed: number) {
   let state = seed | 0;
