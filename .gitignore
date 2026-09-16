@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.output/
+.vercel/
+.grok/
+.env
+.env.*
+!.env.example
+*.local
+.DS_Store
+*.log
+screenshots/app-builder-preview*
+attachments/
+artifacts/
+.project_id
+.node_modules.lock
