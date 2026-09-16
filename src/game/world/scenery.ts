@@ -215,6 +215,32 @@ function addVegetation(group: THREE.Group, layout: WorldLayout, kit: Kit, extras
   }
 }
 
+function addZoneAccents(group: THREE.Group, layout: WorldLayout, kit: Kit, bag: ResourceBag) {
+  const batch = new MeshBatcher();
+  const style = layout.map.style;
+  for (let i = 6; i < layout.samples.length - 6; i += 7) {
+    const sample = layout.samples[i]!;
+    const zone = layout.zoneAtT(sample.t);
+    const side = i % 2 === 0 ? 1 : -1;
+    const offset = layout.pathWidth * 1.7 + (i % 3) * 0.35;
+    const x = sample.x + sample.rx * offset * side;
+    const z = sample.z + sample.rz * offset * side;
+    const y = layout.height(x, z);
+    if (style === "meadow") {
+      const mat = zone.id === "wet" ? kit.reedMat : zone.id === "thorn" ? kit.thornFoliage : kit.grassMat;
+      batch.add(kit.grassGeo, mat, x, y, z, 0.9, 0.8 + (i % 4) * 0.12, 0.9, 0, i * 0.3, 0);
+    } else if (style === "lakeside") {
+      const hot = zone.id === "ember" || zone.id === "pyro";
+      batch.add(hot ? kit.crystalGeo : kit.rockGeo, hot ? kit.emberMat : kit.ashRock, x, y + 0.25, z, 0.5, 0.75, 0.5, 0, i * 0.2, 0);
+    } else if (style === "cavern") {
+      batch.add(kit.crystalGeo, zone.id === "abyss" ? kit.glowMat : kit.saltMat, x, y + 0.5, z, 0.35, 0.7, 0.35, 0, i * 0.4, 0);
+    } else {
+      batch.add(kit.icoGeo, zone.id === "ether" ? kit.glowMat : kit.voidMat, x, y + 0.18, z, 0.28, 0.16, 0.28, 0, i * 0.25, 0);
+    }
+  }
+  batch.flush(group, bag);
+}
+
 function addBoundaries(group: THREE.Group, layout: WorldLayout, kit: Kit) {
   const style = layout.map.style;
   const step = 1.55;
@@ -639,6 +665,39 @@ function addLife(group: THREE.Group, layout: WorldLayout, extras: AnimatedExtra[
   }
 }
 
+function addZoneParticles(group: THREE.Group, layout: WorldLayout, extras: AnimatedExtra[], bag: ResourceBag) {
+  const count = layout.map.style === "space" ? 80 : 28;
+  const positions = new Float32Array(count * 3);
+  const random = createSeededRandom(layout.seed + 91);
+  for (let i = 0; i < count; i++) {
+    const sample = layout.samples[Math.floor(random() * layout.samples.length)]!;
+    const spread = 2.2 + random() * 4.5;
+    positions[i * 3] = sample.x + (random() * 2 - 1) * spread;
+    positions[i * 3 + 1] = sample.y + 0.55 + random() * (layout.map.style === "space" ? 5.5 : 2.8);
+    positions[i * 3 + 2] = sample.z + (random() * 2 - 1) * spread;
+  }
+  const geo = bag.geo(new THREE.BufferGeometry());
+  geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  const mat = bag.mat(
+    new THREE.PointsMaterial({
+      color: layout.map.style === "meadow" ? "#b7f59a" : layout.map.style === "lakeside" ? "#ffb36b" : layout.map.style === "cavern" ? "#a892ff" : "#e6d4ff",
+      size: layout.map.style === "space" ? 0.18 : 0.11,
+      transparent: true,
+      opacity: 0.4,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }),
+  );
+  const points = new THREE.Points(geo, mat);
+  group.add(points);
+  extras.push({
+    update: (t) => {
+      points.rotation.y = t * 0.025;
+      points.position.y = Math.sin(t * 0.35) * 0.12;
+    },
+  });
+}
+
 export function addScenery(
   group: THREE.Group,
   layout: WorldLayout,
@@ -648,6 +707,7 @@ export function addScenery(
   const kit = makeKit(bag, layout.map.color);
   addWater(group, layout, kit, extras, bag);
   addVegetation(group, layout, kit, extras);
+  addZoneAccents(group, layout, kit, bag);
   addBoundaries(group, layout, kit);
   addBoundaryLandforms(group, layout, kit, bag);
   addLandmarks(group, layout, kit, bag);
@@ -655,4 +715,5 @@ export function addScenery(
   addHero(group, layout, kit, extras, bag);
   addFinds(group, layout, kit, extras, bag);
   addLife(group, layout, extras, bag);
+  addZoneParticles(group, layout, extras, bag);
 }

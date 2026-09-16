@@ -74,7 +74,7 @@ export function stopAmbience() {
   }
 }
 
-export function setAmbience(style: RegionStyle) {
+export function setAmbience(style: RegionStyle, zoneId = "") {
   const c = ensure();
   stopAmbience();
   if (!amb) return;
@@ -84,10 +84,10 @@ export function setAmbience(style: RegionStyle) {
   src.loop = true;
   const filter = c.createBiquadFilter();
   filter.type = "lowpass";
-  if (style === "meadow") filter.frequency.value = 720;
-  else if (style === "lakeside") filter.frequency.value = 480;
-  else if (style === "cavern") filter.frequency.value = 260;
-  else filter.frequency.value = 180;
+  if (style === "meadow") filter.frequency.value = zoneId === "wet" ? 560 : zoneId === "root" ? 610 : 720;
+  else if (style === "lakeside") filter.frequency.value = zoneId === "ember" ? 360 : zoneId === "ashen" ? 300 : 480;
+  else if (style === "cavern") filter.frequency.value = zoneId === "abyss" ? 190 : zoneId === "throne" ? 220 : 260;
+  else filter.frequency.value = zoneId === "ether" ? 145 : 180;
   const g = c.createGain();
   g.gain.value = style === "space" ? 0.35 : 0.55;
   src.connect(filter);
@@ -132,7 +132,7 @@ export function setAmbience(style: RegionStyle) {
   if (style === "meadow") {
     chirpTimer = window.setInterval(() => {
       if (muted) return;
-      tone(1400 + Math.random() * 600, 0.08, "sine", 0.018, 200);
+      tone((zoneId === "root" ? 1120 : 1400) + Math.random() * 600, 0.08, "sine", 0.018, 200);
     }, 2800);
   } else if (style === "cavern") {
     chirpTimer = window.setInterval(() => {

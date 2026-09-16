@@ -61,7 +61,7 @@ function RegionContent({ mapId }: { mapId: number }) {
     extrasRef.current = built.extras;
     const parent = groupRef.current;
     parent?.add(built.group);
-    setAmbience(map.style);
+    setAmbience(map.style, built.layout.zones[0]?.id ?? "");
     return () => {
       parent?.remove(built.group);
       built.dispose();
@@ -280,6 +280,7 @@ function PlayerController({ mapId }: { mapId: number }) {
   const setNearbyWorld = useGame((s) => s.setNearbyWorld);
   const setZoneName = useGame((s) => s.setZoneName);
   const stepAcc = useRef(0);
+  const ambienceZone = useRef("");
 
   useEffect(() => {
     const layout = getActiveLayout();
@@ -370,7 +371,14 @@ function PlayerController({ mapId }: { mapId: number }) {
       }
     }
     setNearbyWorld(worldId);
-    if (layout) setZoneName(layout.zoneAt(player.x, player.z).name);
+    if (layout) {
+      const zone = layout.zoneAt(player.x, player.z);
+      setZoneName(zone.name);
+      if (zone.id !== ambienceZone.current) {
+        ambienceZone.current = zone.id;
+        setAmbience(map.style, zone.id);
+      }
+    }
 
     let approach = 0;
     if (layout) {

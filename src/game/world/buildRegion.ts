@@ -19,10 +19,11 @@ export function applyAtmosphere(
   scene.background = new THREE.Color(bg);
   scene.fog = new THREE.Fog(
     bg,
-    style === "space" ? 26 : style === "cavern" ? 12 : 16,
-    style === "space" ? 88 : style === "cavern" ? 34 : 44,
+    style === "space" ? 24 : style === "cavern" ? 10 : style === "lakeside" ? 15 : 17,
+    style === "space" ? 92 : style === "cavern" ? 32 : style === "lakeside" ? 48 : 52,
   );
   sun.color.set("#fff4e0");
+  sun.position.set(style === "space" ? -10 : style === "cavern" ? 6 : 12, style === "cavern" ? 14 : 18, style === "lakeside" ? -10 : 8);
   if (style === "cavern") {
     hemi.color.set("#6a5a88");
     hemi.groundColor.set("#1a1220");
@@ -62,8 +63,21 @@ function addTerrain(group: THREE.Group, layout: WorldLayout, bag: ResourceBag) {
     const h = layout.height(x, z);
     position.setY(i, h);
     const zone = layout.zoneAt(x, z);
+    const t = layout.nearestPath(x, z).sample.t;
+    const zoneIndex = layout.zones.indexOf(zone);
+    const nextZone = layout.zones[Math.min(layout.zones.length - 1, zoneIndex + 1)] ?? zone;
+    const blend = zoneIndex >= 0 && nextZone !== zone
+      ? THREE.MathUtils.smoothstep(t, zone.t1 - 0.045, zone.t1 + 0.045)
+      : 0;
     const np = layout.nearestPath(x, z);
     tmp.set(zone.lowColor).lerp(new THREE.Color(zone.color), THREE.MathUtils.clamp((h + 1.2) / 3.2, 0, 1));
+    if (blend > 0) {
+      const nextColor = new THREE.Color(nextZone.lowColor).lerp(
+        new THREE.Color(nextZone.color),
+        THREE.MathUtils.clamp((h + 1.2) / 3.2, 0, 1),
+      );
+      tmp.lerp(nextColor, blend * 0.72);
+    }
     if (np.dist < 2.2) tmp.lerp(worn, (1 - np.dist / 2.2) * 0.35);
     colors[i * 3] = tmp.r;
     colors[i * 3 + 1] = tmp.g;
