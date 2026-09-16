@@ -10,6 +10,7 @@ import { REGION_HALF, getTerrainHeight, percentToWorld } from "../terrain";
 import { applyAtmosphere, buildRegionWorld } from "./buildRegion";
 import { getActiveLayout } from "./layout";
 import type { AnimatedExtra } from "./resources";
+import { assetUrl } from "../assets";
 
 const _look = new THREE.Vector3();
 const _right = new THREE.Vector3();
@@ -81,7 +82,7 @@ function PixelExplorer() {
   const mesh = useRef<THREE.Sprite>(null);
   const tex = useMemo(() => {
     const loader = new THREE.TextureLoader();
-    const t = loader.load("/sprites/explorer.png");
+    const t = loader.load(assetUrl("/sprites/explorer.png"));
     t.magFilter = THREE.NearestFilter;
     t.minFilter = THREE.NearestFilter;
     t.colorSpace = THREE.SRGBColorSpace;

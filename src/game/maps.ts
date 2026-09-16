@@ -1,4 +1,5 @@
 import type { MapDef } from "./types";
+import { assetUrl } from "./assets";
 
 export const MAX_ENERGY = 200;
 export const ENERGY_REGEN_PER_SEC = 5;
@@ -21,8 +22,8 @@ export const MAPS: MapDef[] = [
     style: "meadow",
     color: "#3ecf8e",
     blurb: "Moss roads, old gates, and a forest that still remembers names.",
-    portrait: "/regions/greenfields.jpg",
-    shrine: "/sprites/shrine-meadow.png",
+    portrait: assetUrl("/regions/greenfields.jpg"),
+    shrine: assetUrl("/sprites/shrine-meadow.png"),
     entry: { x: 6, y: 92 },
     chambers: [
       {
@@ -100,8 +101,8 @@ export const MAPS: MapDef[] = [
     style: "lakeside",
     color: "#4f8ef7",
     blurb: "Glass water, cinder halls, and a keep that still smokes at dusk.",
-    portrait: "/regions/crystal-lake.jpg",
-    shrine: "/sprites/shrine-lake.png",
+    portrait: assetUrl("/regions/crystal-lake.jpg"),
+    shrine: assetUrl("/sprites/shrine-lake.png"),
     entry: { x: 5, y: 58 },
     chambers: [
       {
@@ -179,8 +180,8 @@ export const MAPS: MapDef[] = [
     style: "cavern",
     color: "#9b6dff",
     blurb: "Salt air underground, kelp-dark tunnels, a throne the sea forgot.",
-    portrait: "/regions/under-world.jpg",
-    shrine: "/sprites/shrine-cavern.png",
+    portrait: assetUrl("/regions/under-world.jpg"),
+    shrine: assetUrl("/sprites/shrine-cavern.png"),
     entry: { x: 8, y: 94 },
     chambers: [
       {
@@ -258,8 +259,8 @@ export const MAPS: MapDef[] = [
     style: "space",
     color: "#f5c542",
     blurb: "No ground. Only platforms, star-dust, and a road that should not exist.",
-    portrait: "/regions/the-void.jpg",
-    shrine: "/sprites/shrine-void.png",
+    portrait: assetUrl("/regions/the-void.jpg"),
+    shrine: assetUrl("/sprites/shrine-void.png"),
     entry: { x: 10, y: 92 },
     chambers: [
       {
