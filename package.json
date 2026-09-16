@@ -11,7 +11,7 @@
   },
   "scripts": {
     "dev": "vite dev --host 0.0.0.0 --port 8080",
-    "build": "vite build && node scripts/prepare-render.mjs",
+    "build": "vite build --config vite.pages.config.ts && node scripts/prepare-render.mjs",
     "start": "node scripts/render-server.mjs",
     "build:pages": "vite build --config vite.pages.config.ts",
     "build:dev": "vite build --mode development",
