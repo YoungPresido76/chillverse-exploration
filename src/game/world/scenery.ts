@@ -241,6 +241,30 @@ function addZoneAccents(group: THREE.Group, layout: WorldLayout, kit: Kit, bag: 
   batch.flush(group, bag);
 }
 
+function addZoneTransitionMarkers(group: THREE.Group, layout: WorldLayout, kit: Kit, bag: ResourceBag) {
+  const batch = new MeshBatcher();
+  for (const zone of layout.zones.slice(0, -1)) {
+    const s = layout.samples[Math.floor(zone.t1 * (layout.samples.length - 1))]!;
+    const y = layout.height(s.x, s.z);
+    const left = [s.x + s.rx * 1.9, y, s.z + s.rz * 1.9] as const;
+    const right = [s.x - s.rx * 1.9, y, s.z - s.rz * 1.9] as const;
+    if (layout.map.style === "meadow") {
+      batch.add(kit.postGeo, kit.woodMat, left[0], left[1] + 0.55, left[2], 0.7, 1, 0.7);
+      batch.add(kit.postGeo, kit.woodMat, right[0], right[1] + 0.55, right[2], 0.7, 1, 0.7);
+    } else if (layout.map.style === "lakeside") {
+      batch.add(kit.rockGeo, kit.ashRock, left[0], left[1] + 0.35, left[2], 0.8, 1.2, 0.8);
+      batch.add(kit.rockGeo, kit.ashRock, right[0], right[1] + 0.2, right[2], 0.6, 0.8, 0.6);
+    } else if (layout.map.style === "cavern") {
+      batch.add(kit.crystalGeo, kit.glowMat, left[0], left[1] + 0.6, left[2], 0.5, 1.5, 0.5);
+      batch.add(kit.crystalGeo, kit.saltMat, right[0], right[1] + 0.45, right[2], 0.45, 1.1, 0.45);
+    } else {
+      batch.add(kit.icoGeo, kit.glowMat, left[0], left[1] + 0.28, left[2], 0.35, 0.2, 0.35);
+      batch.add(kit.icoGeo, kit.voidMat, right[0], right[1] + 0.22, right[2], 0.3, 0.18, 0.3);
+    }
+  }
+  batch.flush(group, bag);
+}
+
 function addBoundaries(group: THREE.Group, layout: WorldLayout, kit: Kit) {
   const style = layout.map.style;
   const step = 1.55;
@@ -344,6 +368,45 @@ function addLandmarkPocketProps(group: THREE.Group, layout: WorldLayout, kit: Ki
       } else {
         batch.add(kit.icoGeo, kit.voidMat, x, y + 0.18, z, 0.35, 0.2, 0.35, 0, angle, 0);
       }
+    }
+  }
+  batch.flush(group, bag);
+}
+
+function addAuthoredLandmarkDetails(group: THREE.Group, layout: WorldLayout, kit: Kit, bag: ResourceBag) {
+  const batch = new MeshBatcher();
+  const style = layout.map.style;
+  for (const lm of layout.landmarks) {
+    const near = layout.nearestPath(lm.x, lm.z).sample;
+    const forward = new THREE.Vector2(near.tx, near.tz);
+    const side = new THREE.Vector2(near.rx, near.rz);
+    const entrance = new THREE.Vector2(lm.x, lm.z).addScaledVector(forward, -1.65);
+    const flank = (d: number, s: number) => new THREE.Vector2(lm.x, lm.z).addScaledVector(forward, d).addScaledVector(side, s);
+    const ey = layout.height(entrance.x, entrance.y);
+    if (style === "meadow") {
+      batch.add(kit.postGeo, kit.woodMat, entrance.x - side.x * 1.25, ey + 0.7, entrance.y - side.y * 1.25, 0.75, 0.9, 0.75);
+      batch.add(kit.postGeo, kit.woodMat, entrance.x + side.x * 1.25, ey + 0.7, entrance.y + side.y * 1.25, 0.75, 0.9, 0.75);
+      batch.add(kit.boxGeo, kit.woodMat, entrance.x, ey + 1.4, entrance.y, 2.9, 0.22, 0.25);
+      const p = flank(1.5, 2.35); batch.add(kit.boxGeo, kit.stoneMat, p.x, layout.height(p.x, p.y) + 0.22, p.y, 0.9, 0.45, 0.65);
+      const q = flank(2.1, -2.2); batch.add(kit.grassGeo, kit.glowMat, q.x, layout.height(q.x, q.y), q.y, 1.3, 1.8, 1.3);
+    } else if (style === "lakeside") {
+      batch.add(kit.boxGeo, kit.ashRock, entrance.x - side.x * 1.3, ey + 0.9, entrance.y - side.y * 1.3, 0.5, 1.8, 0.5);
+      batch.add(kit.boxGeo, kit.ashRock, entrance.x + side.x * 1.3, ey + 0.65, entrance.y + side.y * 1.3, 0.5, 1.3, 0.5);
+      batch.add(kit.boxGeo, kit.ashRock, entrance.x, ey + 1.75, entrance.y, 2.8, 0.3, 0.45);
+      const p = flank(1.3, 2.6); batch.add(kit.icoGeo, kit.emberMat, p.x, layout.height(p.x, p.y) + 0.9, p.y, 1.3, 1.3, 1.3);
+      const q = flank(2.2, -2.4); batch.add(kit.boxGeo, kit.darkRock, q.x, layout.height(q.x, q.y) + 0.18, q.y, 1.4, 0.35, 0.7);
+    } else if (style === "cavern") {
+      batch.add(kit.crystalGeo, kit.saltMat, entrance.x - side.x * 1.15, ey + 0.7, entrance.y - side.y * 1.15, 0.65, 1.7, 0.65);
+      batch.add(kit.crystalGeo, kit.saltMat, entrance.x + side.x * 1.15, ey + 0.5, entrance.y + side.y * 1.15, 0.55, 1.25, 0.55);
+      batch.add(kit.torusGeo, kit.glowMat, entrance.x, ey + 1.55, entrance.y, 1.7, 1.7, 1.7, Math.PI / 2);
+      const p = flank(1.6, 2.5); batch.add(kit.boxGeo, kit.stoneMat, p.x, layout.height(p.x, p.y) + 0.38, p.y, 1.1, 0.75, 0.8);
+      const q = flank(2.2, -2.2); batch.add(kit.crystalGeo, kit.glowMat, q.x, layout.height(q.x, q.y) + 0.6, q.y, 0.65, 1.5, 0.65);
+    } else {
+      batch.add(kit.boxGeo, kit.voidMat, entrance.x - side.x * 1.25, ey + 0.85, entrance.y - side.y * 1.25, 0.24, 1.7, 0.24);
+      batch.add(kit.boxGeo, kit.voidMat, entrance.x + side.x * 1.25, ey + 0.85, entrance.y + side.y * 1.25, 0.24, 1.7, 0.24);
+      batch.add(kit.torusGeo, kit.glowMat, entrance.x, ey + 1.7, entrance.y, 1.65, 1.65, 1.65, Math.PI / 2);
+      const p = flank(1.6, 2.5); batch.add(kit.icoGeo, kit.glowMat, p.x, layout.height(p.x, p.y) + 0.35, p.y, 0.55, 0.35, 0.55);
+      const q = flank(2.3, -2.1); batch.add(kit.boxGeo, kit.voidMat, q.x, layout.height(q.x, q.y) + 0.2, q.y, 1.3, 0.22, 0.65);
     }
   }
   batch.flush(group, bag);
@@ -708,10 +771,12 @@ export function addScenery(
   addWater(group, layout, kit, extras, bag);
   addVegetation(group, layout, kit, extras);
   addZoneAccents(group, layout, kit, bag);
+  addZoneTransitionMarkers(group, layout, kit, bag);
   addBoundaries(group, layout, kit);
   addBoundaryLandforms(group, layout, kit, bag);
   addLandmarks(group, layout, kit, bag);
   addLandmarkPocketProps(group, layout, kit, bag);
+  addAuthoredLandmarkDetails(group, layout, kit, bag);
   addHero(group, layout, kit, extras, bag);
   addFinds(group, layout, kit, extras, bag);
   addLife(group, layout, extras, bag);

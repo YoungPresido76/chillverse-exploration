@@ -54,7 +54,10 @@ function ribbonGeometry(samples: PathSample[], width: number, lift: number) {
   const indices: number[] = [];
   for (let i = 0; i < n; i++) {
     const s = samples[i]!;
-    const hw = width * 0.5;
+    // A lived-in trail is never a mathematically constant ribbon: let the edge
+    // breathe slightly while keeping the centerline stable for navigation.
+    const edgeWear = 0.9 + Math.sin(s.t * 31 + s.x * 0.18) * 0.07 + Math.sin(s.t * 67) * 0.035;
+    const hw = width * 0.5 * edgeWear;
     positions[i * 6] = s.x - s.rx * hw;
     positions[i * 6 + 1] = s.y + lift;
     positions[i * 6 + 2] = s.z - s.rz * hw;
