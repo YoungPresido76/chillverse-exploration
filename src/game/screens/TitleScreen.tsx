@@ -1,5 +1,6 @@
 import { sfxPlay, unlockAudio } from "../audio";
 import { useGame } from "../store";
+import { assetUrl } from "../assets";
 
 export function TitleScreen() {
   const hasSave = useGame((s) => s.hasSave);
@@ -16,7 +17,7 @@ export function TitleScreen() {
   return (
     <div className="relative flex h-dvh w-full flex-col overflow-hidden bg-bg text-fg">
       <img
-        src="/maps/title.jpg"
+        src={assetUrl("/maps/title.jpg")}
         alt=""
         className="absolute inset-0 h-full w-full object-cover"
       />

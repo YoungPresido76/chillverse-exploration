@@ -4,6 +4,7 @@ import { sfxPlay, unlockAudio } from "../audio";
 import { useGame } from "../store";
 import { player } from "../player";
 import { percentToWorld, getTerrainHeight } from "../terrain";
+import { assetUrl } from "../assets";
 
 export function AtlasScreen() {
   const xp = useGame((s) => s.xp);
@@ -36,7 +37,7 @@ export function AtlasScreen() {
 
   return (
     <div className="relative flex h-dvh w-full flex-col overflow-hidden bg-bg text-fg">
-      <img src="/maps/atlas.jpg" alt="" className="absolute inset-0 h-full w-full object-cover opacity-80" />
+      <img src={assetUrl("/maps/atlas.jpg")} alt="" className="absolute inset-0 h-full w-full object-cover opacity-80" />
       <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/70 to-bg/35" />
 
       <header className="relative z-10 flex items-center justify-between gap-3 px-4 py-4 pt-[max(1rem,env(safe-area-inset-top))]">

@@ -3,6 +3,7 @@ import { MAX_ENERGY, getMap, isReachable } from "../maps";
 import { useGame } from "../store";
 import { getFindDef } from "../world/finds";
 import { cn } from "@/lib/utils";
+import { assetUrl } from "../assets";
 
 export function Hud() {
   const map = getMap(useGame((s) => s.activeMapId));
@@ -45,7 +46,7 @@ export function Hud() {
             {zoneName ? <p className="mt-0.5 font-mono text-[10px] font-normal tracking-wide text-muted">{zoneName}</p> : null}
           </div>
           <div className="flex items-center gap-2 rounded-lg border border-border bg-surface/85 px-3 py-2">
-            <img src="/sprites/icon-energy.png" alt="" className="h-6 w-6 pixelated" />
+            <img src={assetUrl("/sprites/icon-energy.png")} alt="" className="h-6 w-6 pixelated" />
             <div className="w-28">
               <div className="h-1.5 overflow-hidden rounded-full bg-fg/15">
                 <div
@@ -62,9 +63,9 @@ export function Hud() {
       </div>
 
       <div className="absolute left-4 top-20 flex flex-col gap-2">
-        <StatChip icon="/sprites/icon-relic.png" label={`${xp.toLocaleString()} XP`} />
-        <StatChip icon="/sprites/icon-relic.png" label={`${artifacts} relics`} />
-        <StatChip icon="/sprites/icon-compass.png" label={`${mapFinds.length} notes`} />
+        <StatChip icon={assetUrl("/sprites/icon-relic.png")} label={`${xp.toLocaleString()} XP`} />
+        <StatChip icon={assetUrl("/sprites/icon-relic.png")} label={`${artifacts} relics`} />
+        <StatChip icon={assetUrl("/sprites/icon-compass.png")} label={`${mapFinds.length} notes`} />
       </div>
 
       <div className="absolute right-4 top-36 flex flex-col items-end gap-2">
@@ -82,7 +83,7 @@ export function Hud() {
           onClick={() => setScreen("journal")}
           aria-label="Journal"
         >
-          <img src="/sprites/icon-journal.png" alt="" className="h-7 w-7 pixelated" />
+          <img src={assetUrl("/sprites/icon-journal.png")} alt="" className="h-7 w-7 pixelated" />
         </button>
       </div>
 
