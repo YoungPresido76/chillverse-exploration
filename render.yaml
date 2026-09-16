@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: chillverse-exploration
+    runtime: node
+    plan: free
+    branch: main
+    buildCommand: npm ci && npm run build
+    startCommand: node scripts/render-server.mjs
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
